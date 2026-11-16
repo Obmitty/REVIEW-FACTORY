@@ -57,7 +57,8 @@ const key=new THREE.DirectionalLight(0xfff2e0,1.0);key.position.copy(SUN).multip
 const rim=new THREE.DirectionalLight(0xb4c8e8,0.5);rim.position.set(-4,3,-5);scene.add(rim);
 const gd=new THREE.DataTexture(new Uint8Array([78,140,200,255]),4,1,THREE.LuminanceFormat);gd.minFilter=gd.magFilter=THREE.NearestFilter;gd.generateMipmaps=false;gd.needsUpdate=true;
 function addRim(m){m.onBeforeCompile=s=>{s.fragmentShader=s.fragmentShader.replace('#include <dithering_fragment>','float rimF=1.0-abs(dot(normalize(normal),normalize(vViewPosition)));gl_FragColor.rgb+=vec3(0.66,0.72,0.82)*pow(rimF,3.0)*0.28;\n#include <dithering_fragment>');};return m;}
-const mc={};function toon(c,dbl){const k=c+(dbl?'d':'');if(!mc[k])mc[k]=addRim(new THREE.MeshToonMaterial({color:c,gradientMap:gd,side:dbl?THREE.DoubleSide:THREE.FrontSide}));return mc[k];}
+const mc={};const gdS=new THREE.DataTexture(new Uint8Array([214,228,243,255]),4,1,THREE.LuminanceFormat);gdS.minFilter=gdS.magFilter=THREE.NearestFilter;gdS.generateMipmaps=false;gdS.needsUpdate=true;const SKN=new Set();
+function toon(c,dbl){const k=c+(dbl?'d':'');if(!mc[k])mc[k]=addRim(new THREE.MeshToonMaterial({color:c,emissive:SKN.has(c)?new THREE.Color(c).multiplyScalar(0.14):0,gradientMap:SKN.has(c)?gdS:gd,side:dbl?THREE.DoubleSide:THREE.FrontSide}));return mc[k];}
 const vs='uniform float thickness; void main(){ vec4 mv = modelViewMatrix*vec4(position,1.0); vec3 n = normalize(normalMatrix*normal); mv.xyz += n*thickness; gl_Position = projectionMatrix*mv; }';
 const fs='uniform vec3 color; void main(){ gl_FragColor = vec4(color,1.0); }';
 const oMat=t=>new THREE.ShaderMaterial({uniforms:{thickness:{value:t},color:{value:new THREE.Color(0x1d1612)}},vertexShader:vs,fragmentShader:fs,side:THREE.BackSide});
@@ -1032,7 +1033,7 @@ if(st==='long'||st==='braid'){const lg=new THREE.CylinderGeometry(0.142,0.162,st
 if(st==='braid'){for(let k=0;k<7;k++)part(H,sph(0.034-k*0.002,10,8),k%2?hi:hc,[0,-0.02-k*0.055,-0.15-k*0.006]);part(H,tor(0.02,0.007,6,12),0xa04040,[0,-0.42,-0.19],[Math.PI/2,0,0]);}return;}
 if(st==='bun'){part(H,sph(0.068,16,12),hc,[0,0.24,-0.115]);part(H,tor(0.05,0.01,6,14),hi,[0,0.22,-0.1],[1.0,0,0]);lock(0.112,0.12,0.018);lock(-0.112,0.12,0.018);return;}
 if(st==='pony'){part(H,tor(0.03,0.011,6,12),0xc04050,[0,0.19,-0.15],[0.9,0,0]);part(H,new THREE.CylinderGeometry(0.045,0.015,0.34,12),hc,[0,0.03,-0.2],[-0.35,0,0]);lock(0.115,0.14,0.02);lock(-0.115,0.14,0.02);return;}}
-function make(o){const fem=o.sex==='f',kid=!!o.kid;
+function make(o){if(o.pal){if(o.pal.skin!=null)SKN.add(o.pal.skin);if(o.pal.skinDk!=null)SKN.add(o.pal.skinDk);}const fem=o.sex==='f',kid=!!o.kid;
 const gear=[knife,sat,scab,spearBack,pd,lantern,mt,glider,sword,spear,food,gog];const vis=gear.map(g=>g.visible);gear.forEach(g=>g.visible=false);
 const back=[];torso.children.forEach(ch=>{if(ch.isMesh||ch.isGroup){const b=new THREE.Box3().setFromObject(ch);if(!b.isEmpty()){const c=b.getCenter(new THREE.Vector3());torso.worldToLocal(c);if(c.z<-0.13){back.push([ch,ch.visible]);ch.visible=false;}}}});
 const c=hero.clone(true);gear.forEach((g,i)=>g.visible=vis[i]);back.forEach(([ch,v])=>ch.visible=v);
@@ -1047,8 +1048,8 @@ const kill=[];c.traverse(x=>{if(!x.visible)kill.push(x);if(x.isLight)kill.push(x
 const P2=Object.assign({},o.pal);if(outfit!=='jacket'){P2.trim=P2.trim||P2.jacket;P2.shirt=P2.shirt||P2.jacket;}P2.cloth=P2.cloth||P2.trousers;
 const map={};KEYS.forEach(k=>{if(P2[k]!=null)map[C[k]]=P2[k];});const sk=new THREE.Color(P2.skin||C.skin),sk0=new THREE.Color(C.skin);const rr=sk.r/sk0.r,rg=sk.g/sk0.g,rb=sk.b/sk0.b;
 const F=Object.assign({jaw:0,len:0,nose:0,chin:0,cheek:0,brow:0},o.face||{});
-c.traverse(x=>{if(!x.isMesh||!x.material||x.material.type==='ShaderMaterial')return;if(x.material.vertexColors&&x.parent===J.head){x.geometry=x.geometry.clone();const cl=x.geometry.attributes.color,PP=x.geometry.attributes.position;
-for(let i=0;i<cl.count;i++){let r=cl.getX(i)*rr,g=cl.getY(i)*rg,b=cl.getZ(i)*rb;const ux=unitP.getX(i),uy=unitP.getY(i),uz=unitP.getZ(i);
+c.traverse(x=>{if(!x.isMesh||!x.material||x.material.type==='ShaderMaterial')return;if(x.material.vertexColors&&x.parent===J.head){x.geometry=x.geometry.clone();const fk='f'+sk.getHex();if(!mc[fk])mc[fk]=addRim(new THREE.MeshToonMaterial({color:0xffffff,vertexColors:true,gradientMap:gdS,emissive:sk.clone().multiplyScalar(0.14)}));x.material=mc[fk];const cl=x.geometry.attributes.color,PP=x.geometry.attributes.position;
+for(let i=0;i<cl.count;i++){const ux=unitP.getX(i),uy=unitP.getY(i),uz=unitP.getZ(i);/* rebuilt from the NPC's own skin: no stubble tint carried over from Corin */const bl0=0.22*ga(Math.abs(ux)-0.42,0.14)*ga(uy+0.1,0.1)*sst(0.3,0.7,uz),lp0=ga(ux,0.16)*ga(uy+0.39,0.05)*sst(0.6,0.9,uz)*0.4;let r=sk.r+(sk.r*1.03-sk.r)*bl0,g=sk.g+(sk.g*0.86-sk.g)*bl0,b=sk.b+(sk.b*0.88-sk.b)*bl0;r+=(sk.r*0.85-r)*lp0;g+=(sk.g*0.72-g)*lp0;b+=(sk.b*0.78-b)*lp0;
 let px=PP.getX(i),py=PP.getY(i),pz=PP.getZ(i);const lo=sst(-0.12,-0.75,uy);px*=1+F.jaw*0.12*lo;py-=F.len*0.018*sst(-0.1,-0.95,uy);pz+=F.nose*0.012*ga(ux,0.07)*ga(uy+0.12,0.13)*sst(0.75,0.97,uz);pz+=F.chin*0.012*ga(ux,0.16)*ga(uy+0.82,0.12)*sst(0.2,0.6,uz);py-=F.chin*0.006*ga(ux,0.16)*ga(uy+0.85,0.1);
 px+=Math.sign(ux)*F.cheek*0.008*ga(uy+0.08,0.14)*ga(Math.abs(ux)-0.55,0.2)*sst(0.1,0.5,uz);pz+=F.brow*0.008*ga(uy-0.2,0.05)*ga(ux,0.4)*sst(0.6,0.9,uz);PP.setXYZ(i,px,py,pz);
 if(o.beardCol!=null){const lip=ga(ux,0.16)*ga(uy+0.39,0.05);let m=sst(-0.2,-0.4,uy)*sst(-0.3,0.2,uz)*(1-lip);m+=0.7*ga(ux,0.22)*ga(uy+0.3,0.045)*sst(0.6,0.9,uz);m=Math.min(1,m)*(o.beardAmt||0.5);const bc=new THREE.Color(o.beardCol);r+=(bc.r-r)*m;g+=(bc.g-g)*m;b+=(bc.b-b)*m;}
