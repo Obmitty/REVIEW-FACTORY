@@ -361,7 +361,7 @@ rsX:A?reachSh:holdSh,reX:A?reachEl:holdEl,rsZ:-0.28,lsX:A?holdSh:reachSh,leX:A?h
 lhX:A?stepH:standH,lkX:A?stepK:standK,rhX:A?standH:stepH,rkX:A?standK:stepK,lhZ:0.35+(A?0.15*stepUp*(1-rise):0),rhZ:-0.35-(A?0:0.15*stepUp*(1-rise)),laX:0.35,raX:0.35});return p;},ex:()=>EX.effort},
 glide:{label:'Glide',weapon:null,speed:6,wind:2.2,blend:0.5,focus:2.75,f:u=>{const p=rest();const s1=Math.sin(u*1.1);
 ov(p,{py:1.5+0.07*Math.sin(u*1.3),rz:0.12*Math.sin(u*0.5),rx:-0.04,lsX:-2.85,lsZ:0.18,leX:-0.2,rsX:-2.85,rsZ:-0.18,reX:-0.2,rwX:0,lhX:-0.15+0.12*s1,lkX:0.35+0.1*s1,rhX:-0.05+0.12*Math.sin(u*1.1+1.3),rkX:0.4,laX:0.35,raX:0.35,hRX:-0.15,hRY:0.25*Math.sin(u*0.4)});return p;},ex:u=>eMix(EX.thrill,EX.content,0.5+0.5*Math.sin(u*0.5))},
-swim:{label:'Swim',weapon:null,speed:0.9,wind:0.15,blend:0.6,focus:0.4,f:u=>{const ph=u*3.0,p=rest();const aL=wrapA(ph+Math.PI),aR=wrapA(ph);const el=a=>a>0?-1.2*Math.sin(a):-0.35*Math.sin(-a);
+swim:{label:'Swim',weapon:null,speed:1.45,wind:0.15,blend:0.6,focus:0.4,f:u=>{const ph=u*3.0,p=rest();const aL=wrapA(ph+Math.PI),aR=wrapA(ph);const el=a=>a>0?-1.2*Math.sin(a):-0.35*Math.sin(-a);
 ov(p,{rx:1.45,py:0.18+0.012*Math.sin(2*ph),pz:-1.11,lsX:aL,lsZ:0.15,leX:el(aL),rsX:aR,rsZ:-0.15,reX:el(aR),rwX:0,tRY:0.4*Math.sin(ph),hRY:0.9*Math.pow(Math.max(0,Math.sin(ph)),4),hRX:-0.35,
 lhX:0.05+0.25*Math.sin(2.4*ph),rhX:0.05-0.25*Math.sin(2.4*ph),lkX:0.15+0.12*(1+Math.sin(2.4*ph+1)),rkX:0.15+0.12*(1-Math.sin(2.4*ph+1)),laX:0.6,raX:0.6});return p;},ex:u=>eMix(EX.held,EX.breath,Math.pow(Math.max(0,Math.sin(u*3.0)),4))},
 tread:{label:'Treading water',weapon:null,wind:0.15,blend:0.6,f:u=>{const p=rest();const s=Math.sin(u*3);ov(p,{py:-1.0+0.03*s,lsX:-0.5,lsZ:0.9+0.25*s,leX:-0.6,rsX:-0.5,rsZ:-0.9-0.25*s,reX:-0.6,lhX:-0.4+0.3*s,lkX:0.7,rhX:-0.4-0.3*s,rkX:0.7,laX:0.4,raX:0.4,hRX:-0.1});return p;},ex:()=>EX.content},
@@ -1348,7 +1348,7 @@ function playUpdate(dt){let ix=joy.x+((keys.d||keys.arrowright)?1:0)-((keys.a||k
 const cy=Math.atan2(mapCam.position.x-mapCtl.target.x,mapCam.position.z-mapCtl.target.z);const fx=-Math.sin(cy),fz=-Math.cos(cy);const dx=fx*iy+(-fz)*ix,dz=fz*iy+fx*ix;
 const running=sprint||keys.shift||(joy.on&&m>0.9);const gH=SH(PL.pos.x,PL.pos.z);
 if(PL.climb){climbUpdate(dt,dx,dz,m);playTail(dt,PL.climb?'climb':'idle',m);return;}
-let spd=PL.glide?13:PL.water?2.4:running?8:2.8;if(!PL.glide)spd*=m>0.05?Math.max(m,0.35):0;
+let spd=PL.glide?13:PL.water?(running?7:4.6):running?8:2.8;if(!PL.glide)spd*=m>0.05?Math.max(m,0.35):0;
 let nx=PL.pos.x+dx*spd*dt,nz=PL.pos.z+dz*spd*dt;if(PL.glide&&m<0.05){nx=PL.pos.x+Math.sin(PL.yaw)*8*dt;nz=PL.pos.z+Math.cos(PL.yaw)*8*dt;}
 nx=Math.max(-LIM,Math.min(LIM,nx));nz=Math.max(-LIM,Math.min(LIM,nz));
 if(!PL.air&&!PL.water&&m>0.05){const ml=Math.hypot(dx,dz)||1;const lx=PL.pos.x+dx/ml*0.6,lz=PL.pos.z+dz/ml*0.6;const sl=(SH(lx,lz)-gH)/0.6;
